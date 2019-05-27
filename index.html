@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+</head>
+
+<body>
+
+<span>Balance:</span>
+<span id="balanceValue">1000</span>
+<br/>
+
+<span>TotalBet:</span>
+<span id="totalBetValue">1</span>
+<input id="totalBetInput" type="text" onchange="onChangeTotalBet()">
+<br/>
+
+<button onclick="onSpin()" id="spinButton" disabled>Spin</button>
+
+<script>
+    var gameData = {
+        balance: 1000,
+        totalBet: 1,
+        win: 0,
+        playerId: "stakeplayer002"
+    };
+
+    function onInit(playerId) {
+
+        var url = "http://ngp-rgs.softweave.net/play?playerId=" + gameData.playerId + "&gameId=1091&platform=desktop&gameJs=./desktop.js&walletType=fm";
+
+        fetch(url)
+            .then((response) => {
+                if (response.ok) {
+                    if (response.status === 200) {
+                        console.log("Initialization successful!");
+                        gameData.playerId = playerId;
+                        document.getElementById("spinButton").disabled = false;
+                        return response.json();
+                    }
+                } else {
+                    console.log("Initialization error!");
+                    return;
+                }
+            })
+            .then((initJson) => {
+                if (initJson) {
+                    console.log("Init data: " + initJson);
+                    gameData.totalBet = initJson.totalBet;
+                    gameData.balance = initJson.balance;
+                }
+            });
+    }
+
+    function onSpin() {
+        document.getElementById("spinButton").disabled = true;
+        var url = "http://ngp-rgs.softweave.net/play?playerId=" + gameData.playerId + "&totalbet=" + gameData.totalBet;
+        fetch(url)
+            .then((response) => {
+                if (response.ok) {
+                    if (response.status === 200) {
+                        console.log("Spin successful!");
+                        document.getElementById("spinButton").disabled = false;
+                        return response.json();
+                    }
+                } else {
+                    console.log("Spin error!");
+                    return;
+                }
+            })
+            .then((spinJson) => {
+                if (spinJson) {
+                    console.log("Spin data: " + spinJson);
+                    gameData.win = spinJson.win;
+                    gameData.balance = spinJson.balance;
+                }
+            });
+    }
+
+    function onChangeTotalBet() {
+        var totalBetInput = document.getElementById("totalBetInput");
+        var totalBetValue = parseInt(totalBetInput.value);
+        totalBetInput.value = "";
+        if (totalBetValue > 0 && gameData.balance - totalBetValue >= 0) {
+            gameData.totalBet = totalBetValue;
+            updateUI();
+        }
+
+    }
+
+    function updateUI() {
+        document.getElementById("balanceValue").innerText = gameData.balance;
+        document.getElementById("totalBetValue").innerText = gameData.totalBet;
+    }
+
+    onInit();
+</script>
+
+</body>
+
+</html>
