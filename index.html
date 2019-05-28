@@ -3,16 +3,19 @@
 
 <head>
     <meta charset="utf-8">
+
 </head>
 
 <body>
 
 <span>Balance:</span>
-<span id="balanceValue">1000</span>
+<span id="balanceValue">-1</span>
+<span id="winTitle">Win:</span>
+<span id="winValue">-1</span>
 <br/>
 
 <span>TotalBet:</span>
-<span id="totalBetValue">1</span>
+<span id="totalBetValue">-1</span>
 <input id="totalBetInput" type="text" onchange="onChangeTotalBet()">
 <br/>
 
@@ -20,22 +23,20 @@
 
 <script>
     var gameData = {
-        balance: 1000,
-        totalBet: 1,
-        win: 0,
-        playerId: "stakeplayer002"
+        balance: -1,
+        totalBet: -1,
+        win: -1
     };
 
     function onInit(playerId) {
 
-        var url = "http://ngp-rgs.softweave.net/play?playerId=" + gameData.playerId + "&gameId=1091&platform=desktop&gameJs=./desktop.js&walletType=fm";
+        var url = "http://localhost:3300/init/?playerId=" + playerId;
 
         fetch(url)
             .then((response) => {
                 if (response.ok) {
                     if (response.status === 200) {
                         console.log("Initialization successful!");
-                        gameData.playerId = playerId;
                         document.getElementById("spinButton").disabled = false;
                         return response.json();
                     }
@@ -49,13 +50,16 @@
                     console.log("Init data: " + initJson);
                     gameData.totalBet = initJson.totalBet;
                     gameData.balance = initJson.balance;
+                    gameData.playerId = initJson.playerId;
+                    gameData.win = initJson.win;
+                    updateUI();
                 }
             });
     }
 
     function onSpin() {
         document.getElementById("spinButton").disabled = true;
-        var url = "http://ngp-rgs.softweave.net/play?playerId=" + gameData.playerId + "&totalbet=" + gameData.totalBet;
+        var url = "http://localhost:3300/spin/?playerId=" + gameData.playerId + "&totalBet=" + gameData.totalBet;
         fetch(url)
             .then((response) => {
                 if (response.ok) {
@@ -72,8 +76,9 @@
             .then((spinJson) => {
                 if (spinJson) {
                     console.log("Spin data: " + spinJson);
-                    gameData.win = spinJson.win;
                     gameData.balance = spinJson.balance;
+                    gameData.win = spinJson.win;
+                    updateUI();
                 }
             });
     }
@@ -92,9 +97,31 @@
     function updateUI() {
         document.getElementById("balanceValue").innerText = gameData.balance;
         document.getElementById("totalBetValue").innerText = gameData.totalBet;
+        const winElement = document.getElementById("winValue");
+        const winTitle = document.getElementById("winTitle");
+        winElement.innerText = gameData.win;
+        if (gameData.win) {
+            winElement.style.visibility = "visible";
+            winTitle.style.visibility = "visible";
+        } else {
+            winElement.style.visibility = "hidden";
+            winTitle.style.visibility = "hidden";
+        }
     }
 
-    onInit();
+
+    function getPlayerId() {
+        const url = new URL(window.location.href);
+        const urlPlayerId = url.searchParams.get("playerId");
+        if (urlPlayerId) {
+            return urlPlayerId;
+        }
+        return "defaultPlayer001"
+    }
+
+    onInit(getPlayerId());
+
+
 </script>
 
 </body>
