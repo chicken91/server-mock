@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="client.js"></script>
+</head>
+
+<body>
+
+<span>Balance:</span>
+<span id="balanceValue">-1</span>
+<span id="winTitle">Win:</span>
+<span id="winValue">-1</span>
+<br/>
+
+<span>TotalBet:</span>
+<span id="totalBetValue">-1</span>
+<input id="totalBetInput" type="text" onchange="onChangeTotalBet()">
+<br/>
+
+<button onclick="onSpin()" id="spinButton" disabled>Spin</button>
+
+</body>
+
+</html>
